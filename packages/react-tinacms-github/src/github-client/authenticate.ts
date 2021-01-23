@@ -23,9 +23,10 @@ export const authenticate = (
   codeExchangeRoute: string,
   scope: string = 'public_repo'
 ): Promise<void> => {
-  const authState = Math.random()
-    .toString(36)
-    .substring(7)
+  const authState =
+    Math.random()
+      .toString(36)
+      .substring(7) + `!${window.location.origin}/github/authorizing`
 
   const url = `https://github.com/login/oauth/authorize?scope=${scope}&client_id=${clientId}&state=${authState}`
 

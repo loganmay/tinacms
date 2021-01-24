@@ -23,9 +23,21 @@ export const useGithubAuthRedirect = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const code = urlParams.get('code')
-    const state = urlParams.get('state')
-    console.log(`state: ${state}`)
 
     localStorage[GITHUB_AUTH_CODE_KEY] = code
+  }, [])
+}
+
+export const useGithubAuthRedirectWithStateURL = () => {
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const state = urlParams.get('state')
+
+    if (!state) return // TODO: do something more proper here, like showing an error page
+
+    const redirectUrl =
+      state.substring(state.indexOf('!') + 1) + window.location.search
+
+    window.location.replace(redirectUrl)
   }, [])
 }

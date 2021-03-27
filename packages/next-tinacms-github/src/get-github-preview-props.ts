@@ -81,6 +81,74 @@ export async function getGithubPreviewProps<Data = any>(
   }
 }
 
+export interface PreviewDataMultifile<Data> {
+  github_access_token: string
+  working_repo_full_name: string
+  head_branch: string
+  fileRelativePaths: Array<string>
+  parse(content: string): Data
+}
+
+export interface GithubPreviewPropsMultifile<Data> {
+  props: {
+    preview: boolean
+    files: Array<GithubFile<Data>>
+    error: GithubError | null
+  }
+}
+
+export async function getGithubPreviewPropsMultifile<Data = any>(
+  options: PreviewDataMultifile<Data>
+): Promise<GithubPreviewPropsMultifile<Data>> {
+  const fileRelativePaths = options.fileRelativePaths
+  const github_access_token = options.github_access_token
+  const working_repo_full_name = options.working_repo_full_name || ''
+  const head_branch = options.head_branch || 'master'
+  const parse = options.parse
+
+  let error: GithubError | null = null
+
+  const files: Array<GithubFile<Data>> = []
+
+  for (const i in fileRelativePaths) {
+    const fileRelativePath = fileRelativePaths[i]
+    try {
+      const file = await getGithubFile({
+        fileRelativePath,
+        working_repo_full_name,
+        github_access_token,
+        head_branch,
+        parse,
+      })
+      files.push(file)
+    } catch (e) {
+      if (e instanceof GithubError) {
+        console.error(
+          githubErrorMessage({
+            path: fileRelativePath,
+            repoFullName: working_repo_full_name,
+            branch: head_branch,
+            accessToken: github_access_token,
+          })
+        )
+        console.error(e)
+        error = { ...e } //workaround since we cant return error as JSON
+        break
+      } else {
+        throw e
+      }
+    }
+  }
+
+  return {
+    props: {
+      files,
+      preview: true,
+      error,
+    },
+  }
+}
+
 interface GithubErrorMessageInfo {
   path: string
   accessToken?: string

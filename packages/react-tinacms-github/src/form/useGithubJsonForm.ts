@@ -18,7 +18,7 @@ limitations under the License.
 
 import { FormOptions, Field } from 'tinacms'
 import { GitFile } from './useGitFileSha'
-import { useGithubFileForm } from './useGithubFileForm'
+import { useGithubFileForm, useGithubMultifileForm } from './useGithubFileForm'
 
 interface Options {
   id?: string
@@ -29,6 +29,16 @@ interface Options {
 
 const serialize = (formData: any) => {
   return JSON.stringify(formData, null, 2)
+}
+
+export function useGithubMultifileJsonForm(
+  jsonFiles: Array<GitFile>,
+  formOptions?: Options
+) {
+  return useGithubMultifileForm(jsonFiles, {
+    ...formOptions,
+    serialize,
+  })
 }
 
 export function useGithubJsonForm(jsonFile: GitFile, formOptions?: Options) {

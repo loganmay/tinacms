@@ -24,6 +24,48 @@ export interface GithubFormOptions extends Partial<FormOptions<any>> {
   serialize: (data: any) => string
 }
 
+export const useGithubMultifileForm = <T = any>(
+  files: Array<GitFile<T>>,
+  options: GithubFormOptions
+) => {
+  const githubFiles: Array<any> = []
+  for (const i in files) {
+    const file = files[i]
+    githubFiles.push(
+      // ignoring lint warning
+      useGithubFile({
+        path: file.fileRelativePath,
+        serialize: options.serialize,
+      })
+    )
+  }
+
+  const initialValues: any = {}
+  for (const i in files) {
+    const file = files[i]
+    initialValues[
+      file.fileRelativePath.substring(0, file.fileRelativePath.indexOf('.'))
+    ] = file.data
+  }
+
+  const [formData, form] = useForm({
+    id: files.map(file => file.fileRelativePath.substring(0, 10)).join('-'),
+    label: options.label || '[Missing Label]',
+    initialValues,
+    fields: options.fields || [],
+    actions: options.actions || [],
+    onSubmit(formData: any) {
+      for (const key in formData) {
+        githubFiles
+          .find(githubFile => githubFile.path == `${key}.json`)
+          .commit(formData[key])
+      }
+    },
+  })
+
+  return [formData || initialValues, form]
+}
+
 export const useGithubFileForm = <T = any>(
   file: GitFile<T>,
   options: GithubFormOptions
